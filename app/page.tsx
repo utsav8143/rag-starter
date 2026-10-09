@@ -1,26 +1,38 @@
 'use client';
 
 import { useState } from "react";
-import {useChat} from "@ai-sdk/react"
+import { useChat } from "@ai-sdk/react";
 
 export default function Chat() {
   const [input, setInput] = useState('');
-  const {messages, sendMessage} = useChat();
+  const { messages, sendMessage } = useChat();
 
-  return(
-     <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
+  return (
+    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
       <div className="space-y-4">
         {messages.map(m => (
           <div key={m.id} className="whitespace-pre-wrap">
-            <div>
-              <div className="font-bold">{m.role}</div>
-              {m.parts.map(part => {
-                switch (part.type) {
-                  case 'text':
-                    return <p>{part.text}</p>;
-                }
-              })}
-            </div>
+            <div className="font-bold">{m.role}</div>
+            {m.parts.map((part, i) => {
+              const key = `${m.id}-${i}`;
+              switch (part.type) {
+                case 'text':
+                  return <p key={key}>{part.text}</p>;
+                case 'tool-addResource':
+                case 'tool-getInformation':
+                  return (
+                    <div key={key}>
+                      call{part.state === 'output-available' ? 'ed' : 'ing'}{' '}
+                      tool: {part.type}
+                      <pre className="my-4 bg-zinc-100 p-2 rounded-sm">
+                        {JSON.stringify(part.input, null, 2)}
+                      </pre>
+                    </div>
+                  );
+                default:
+                  return null;
+              }
+            })}
           </div>
         ))}
       </div>
@@ -39,5 +51,5 @@ export default function Chat() {
         />
       </form>
     </div>
-  )
+  );
 }
